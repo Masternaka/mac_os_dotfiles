@@ -1,0 +1,58 @@
+# Theme
+theme = gruvbox-dark
+
+# Performance
+gpu-acceleration = yes
+resize-delay = 0
+
+# Font
+font-family = "JetBrainsMono Nerd Font"
+font-style = Regular
+font-size = 11
+
+# Window
+window-theme = auto                # ghostty non supporté sur macOS (Linux only)
+window-padding-x = 14
+window-padding-y = 14
+confirm-close-surface = false
+resize-overlay = never
+gtk-toolbar-style = flat          # Linux seulement (ignoré sur macOS)
+
+# Cursor styling
+cursor-style = block
+cursor-style-blink = false
+
+# Keyboard bindings
+# Linux : shift+insert / control+insert (ignorés sur macOS, pas de touche Insert)
+keybind = shift+insert=paste_from_clipboard
+keybind = control+insert=copy_to_clipboard
+# Redimensionnement des splits (fonctionne sur les deux)
+keybind = super+control+shift+alt+arrow_down=resize_split:down,100
+keybind = super+control+shift+alt+arrow_up=resize_split:up,100
+keybind = super+control+shift+alt+arrow_left=resize_split:left,100
+keybind = super+control+shift+alt+arrow_right=resize_split:right,100
+
+# Mouse scrolling
+mouse-scroll-multiplier = 0.95
+mouse-hide-while-typing = yes
+
+# Clipboard and selection
+clipboard-read = allow
+clipboard-write = allow
+select-to-clipboard = yes         # Linux/X11 seulement (ignoré sur macOS)
+
+# Shell integration
+shell-integration = detect
+shell-integration-features = sudo,title   # sans cursor pour respecter cursor-style = block
+
+# Terminal features
+quit-after-last-window-closed = yes
+working-directory = inherit
+
+# Accessibility
+adjust-cursor-thickness = 1
+adjust-font-baseline = 1
+adjust-underline-position = -1
+
+# Advanced options
+copy-on-select = no
