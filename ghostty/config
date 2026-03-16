@@ -1,48 +1,86 @@
-# ─────────────────────────────────────────
-#  GHOSTTY CONFIG — macOS + Zsh + Catppuccin Mocha
-# ─────────────────────────────────────────
+#############################################################
+#                   GHOSTTY CONFIG                         #
+#############################################################
 
-# == POLICE ==
+# ~/.config/ghostty/config
+
+# ── Apparence ──────────────────────────────────────────────
+
+# Thème
+theme = dark:Catppuccin Mocha,light:Catppuccin Latte
+
+# Police
 font-family = "JetBrainsMono Nerd Font"
 font-size = 14
 font-thicken = true
 
-# == THÈME ==
-theme = Catppuccin Mocha
+# Transparence & flou
+background-opacity = 0.85
+background-blur = true
+background-blur = macos-glass-regular
 
-# == CURSEUR ==
+# Marges internes
+window-padding-x = 12
+window-padding-y = 10
+
+# ── Fenêtre ────────────────────────────────────────────────
+macos-titlebar-style = transparent
+window-decoration = auto
+initial-window = true
+title = ""
+macos-window-buttons = visible
+macos-window-shadow = true
+
+# Taille au démarrage
+window-width  = 100
+window-height = 30
+#window-position-x = 
+#window-position-y = 
+window-save-state = default
+
+# ── Curseur ────────────────────────────────────────────────
 cursor-style = bar
 cursor-style-blink = true
 
-# == FENÊTRE ==
-window-width  = 100
-window-height = 30
-window-padding-x = 12
-window-padding-y = 8
-window-decoration = auto
-macos-titlebar-style = tabs
-background-opacity = 0.95
-background-blur-radius = 20
-
-# == SHELL (zsh) ==
-command = /bin/zsh
-shell-integration = zsh
-shell-integration-features = cursor,sudo,title
-
-# == DÉFILEMENT ==
+# ── Défilement ─────────────────────────────────────────────
 scrollback-limit = 10000
+scrollbar = system
 
-# == PERFORMANCES ==
-#vsync = true
-#renderer = metal
+# ── Onglets & splits ───────────────────────────────────────
+window-new-tab-position = end
+window-show-tab-bar = auto
 
-# == CLAVIER ==
-macos-option-as-alt = left
+# ── Comportement ───────────────────────────────────────────
+copy-on-select = true
+confirm-close-surface = true
+quick-terminal-position = top
+quick-terminal-size = 20%
+quick-terminal-screen = main
+quick-terminal-autohide = false
+quick-terminal-space-behavior = move
+quick-terminal-keyboard-interactivity = on-demand
+bell-features = attention
+macos-dock-drop-behavior = new-window
 
-# == SOURIS ==
+# ── Matériel ───────────────────────────────────────────────
+
+# Souris
 mouse-hide-while-typing = true
+focus-follows-mouse = false
+right-click-action = context-menu
+
+# Clavier
+macos-option-as-alt = left
 
 # == LIENS & PRESSE-PAPIER ==
 link-url = true
-copy-on-select = false
+link-previews = true
+copy-on-select = true
 clipboard-trim-trailing-spaces = true
+
+# ── Raccourcis clavier (ghostty +list-actions) ───────────────────────────────
+keybind = cmd+enter=toggle_fullscreen
+keybind = cmd+shift+h=goto_split:left
+keybind = cmd+shift+l=goto_split:right
+keybind = cmd+shift+k=goto_split:up
+keybind = cmd+shift+j=goto_split:down
