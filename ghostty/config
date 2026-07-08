@@ -11,17 +11,17 @@ theme = dark:Catppuccin Mocha,light:Catppuccin Latte
 
 # Police
 font-family = "JetBrainsMono Nerd Font"
-font-size = 14
+font-size = 12
 font-thicken = true
 
 # Transparence & flou
 background-opacity = 0.85
-background-blur = true
+background-opacity-cells = true 
 background-blur = macos-glass-regular
 
 # Marges internes
 window-padding-x = 12
-window-padding-y = 10
+window-padding-y = 12
 
 # ── Fenêtre ────────────────────────────────────────────────
 macos-titlebar-style = transparent
@@ -30,6 +30,8 @@ initial-window = true
 title = ""
 macos-window-buttons = visible
 macos-window-shadow = true
+resize-overlay = true
+resize-overlay-position = center
 
 # Taille au démarrage
 window-width  = 100
@@ -39,7 +41,7 @@ window-height = 30
 window-save-state = default
 
 # ── Curseur ────────────────────────────────────────────────
-cursor-style = bar
+cursor-style = block
 cursor-style-blink = true
 
 # ── Défilement ─────────────────────────────────────────────
@@ -48,10 +50,10 @@ scrollbar = system
 
 # ── Onglets & splits ───────────────────────────────────────
 window-new-tab-position = end
-window-show-tab-bar = auto
+unfocused-split-opacity = 0.85
+split-divider-color = #c6a0f6
 
 # ── Comportement ───────────────────────────────────────────
-copy-on-select = true
 confirm-close-surface = true
 quick-terminal-position = top
 quick-terminal-size = 20%
@@ -59,8 +61,17 @@ quick-terminal-screen = main
 quick-terminal-autohide = false
 quick-terminal-space-behavior = move
 quick-terminal-keyboard-interactivity = on-demand
+quick-terminal-animation-duration = 0.2s
 bell-features = attention
 macos-dock-drop-behavior = new-window
+macos-secure-input-indication = true
+macos-titlebar-proxy-icon = true
+
+# ── Notifications et son ───────────────────────────────────
+notify-on-command-finish = unfocused
+notify-on-command-finish-action = bell
+notify-on-command-finish-after = 5s
+
 
 # ── Matériel ───────────────────────────────────────────────
 
@@ -77,6 +88,7 @@ link-url = true
 link-previews = true
 copy-on-select = true
 clipboard-trim-trailing-spaces = true
+clipboard-paste-bracketed-safe = true
 
 # ── Raccourcis clavier (ghostty +list-actions) ───────────────────────────────
 keybind = cmd+enter=toggle_fullscreen
@@ -84,3 +96,23 @@ keybind = cmd+shift+h=goto_split:left
 keybind = cmd+shift+l=goto_split:right
 keybind = cmd+shift+k=goto_split:up
 keybind = cmd+shift+j=goto_split:down
+
+# Onglets
+keybind = cmd+t=new_tab
+keybind = cmd+w=close_surface
+keybind = cmd+shift+left=move_tab:left
+keybind = cmd+shift+right=move_tab:right
+keybind = ctrl+tab=next_tab
+keybind = ctrl+shift+tab=previous_tab
+
+# Splits
+keybind = cmd+d=new_split:right
+keybind = cmd+shift+d=new_split:down
+keybind = cmd+shift+enter=toggle_split_zoom
+
+# Quick terminal (dropdown)
+keybind = cmd+backtick=toggle_quick_terminal
+
+# Divers
+keybind = cmd+shift+e=equalize_splits
+keybind = cmd+r=reset
