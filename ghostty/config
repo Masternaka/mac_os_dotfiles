@@ -34,8 +34,8 @@ resize-overlay = always
 resize-overlay-position = center
 
 # Taille au démarrage
-window-width  = 120
-window-height = 35
+window-width  = 150
+window-height = 40
 #window-position-x =
 #window-position-y =
 window-save-state = default
