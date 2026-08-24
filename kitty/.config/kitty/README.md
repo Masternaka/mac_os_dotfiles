@@ -42,7 +42,7 @@ Le thème Catppuccin Macchiato est activé par défaut avec une palette de coule
 - **Taille** : 13.0pt (optimisée pour la lisibilité)
 - **Ligatures** : Activées pour une meilleure typographie
 - **Variations** : Auto pour gras/italique/bold-italic
-- **Rendu** : Stratégie legacy pour macOS (CoreText)
+- **Rendu** : stratégie `platform`, le rendu CoreText moderne de macOS
 
 ### Curseur
 - **Forme** : Bloc (`block`)
@@ -64,7 +64,7 @@ Le thème Catppuccin Macchiato est activé par défaut avec une palette de coule
 - **Navigation** : Focus ne suit pas la souris (`focus_follows_mouse no`)
 - **Notifications** : Visuelles seulement (pas de son)
 - **Cloche** : Non configurée (défaut)
-- **Contrôle distant** : Non activé
+- **Contrôle distant** : désactivé par défaut (plus sûr, y compris via SSH)
 - **Fermeture** : Confirmation par défaut
 
 ## ⌨️ Raccourcis clavier
@@ -82,13 +82,12 @@ Le thème Catppuccin Macchiato est activé par défaut avec une palette de coule
 - **Couleur barre de titre** : `macos_titlebar_color background` (suit le fond)
 - **Quitter automatique** : `macos_quit_when_last_window_closed yes` (ferme avec la dernière fenêtre)
 - **Fenêtre redimensionnable** : `macos_window_resizable yes`
-- **Espace colorimétrique** : `macos_colorspace displayp3` (pour écrans Retina/P3)
-- **Répétition de touche** : `macos_traditional_fast_key_repeat yes` (classique)
+- **Espace colorimétrique** : `macos_colorspace srgb` (couleurs du thème fidèles et cohérentes avec le web)
 
 ### Compatibilité
 - Support des URLs cliquables
 - Intégration shell activée
-- Contrôle distant autorisé
+- Contrôle distant désactivé par défaut
 
 ## 🚀 Performance
 
@@ -161,14 +160,14 @@ map vos+raccourcis votre_commande
 ## 📝 Comment configurer le quick-acces-terminal
 
 1. Enregistrer le service macOS
-Depuis kitty, lance le kitten une première fois pour faire apparaître la fenêtre, puis ferme-la avec ```ctrl+d``` pour enregistrer le service macOS.
+Depuis Kitty, lance le kitten une première fois pour faire apparaître la fenêtre, puis ferme-la avec `Ctrl+D` (ou relance la même commande) pour enregistrer le service macOS.
 
    ```bash
    kitten quick-access-terminal
    # puis Ctrl+D pour fermer
    ```
 
-1. Faire apparaître l'entrée dans les Services (workaround)
+2. Faire apparaître l'entrée dans les Services (si nécessaire)
 Certains utilisateurs ne voient pas la section "General" dans les raccourcis. Le fix est de lancer manuellement l'app ```kitty-quick-access``` depuis le contenu du package kitty :
 
    Ouvre le Finder → Applications
@@ -178,7 +177,7 @@ Certains utilisateurs ne voient pas la section "General" dans les raccourcis. Le
 
    Cela force l'enregistrement du service et fait apparaître la section General. GitHub
 
-1. Assigner le raccourci global
+3. Assigner le raccourci global
 Va dans System Settings → Keyboard → Keyboard Shortcuts → Services → General et assigne un raccourci à l'entrée "Quick access to kitty".
 Un bon choix qui ne conflit pas avec les raccourcis système : ```⌥Space``` ou ```F12```.
 
@@ -192,7 +191,7 @@ Un bon choix qui ne conflit pas avec les raccourcis système : ```⌥Space``` ou
 - **Raccourcis ne fonctionnent pas** : Redémarrez Kitty
 
 ### Logs et debug
-Activer le mode debug :
+Afficher le diagnostic de la configuration :
 ```bash
 kitty --debug-config
 ```
@@ -214,6 +213,6 @@ kitty --debug-config
 
 ---
 
-**Dernière mise à jour**: 2026-04-16
+**Dernière mise à jour**: 2026-08-24
 
 *Configuration maintenue pour une expérience terminal optimale sur macOS*
