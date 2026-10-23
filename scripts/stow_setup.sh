@@ -1,147 +1,165 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Objectif : proposer les paquets du dépôt à lier avec GNU Stow.
+# Prérequis : GNU Stow déjà installé ; macOS avec Bash 3.2 ou ultérieur.
+# Options : --dry-run (défaut), --apply, --help.
+# Effets : sauvegarde des fichiers existants et création des liens choisis.
+# Retour arrière : voir docs/retour-arriere.md.
 
-echo "🚀 Installation de GNU Stow (les liens sont optionnels)..."
+set -euo pipefail
 
-# --- 0. Resolve repository location ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd -P || true)"
 REPO_DIR=""
 if [ -n "$SCRIPT_DIR" ]; then
     REPO_DIR="$(dirname "$SCRIPT_DIR")"
 fi
 
-if [ -z "$REPO_DIR" ] || [ ! -d "$REPO_DIR" ]; then
-    echo "❌ Dépôt introuvable. Lancez ce script depuis un clone du dépôt."
+if [ -z "$SCRIPT_DIR" ] || [ ! -f "$SCRIPT_DIR/lib.sh" ]; then
+    echo "Erreur : lib.sh introuvable." >&2
     exit 1
 fi
 
-# --- 1. Install Homebrew if not present ---
-if ! command -v brew &> /dev/null; then
-    echo "🍺 Homebrew absent. Installation de Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-else
-    echo "✅ Homebrew déjà installé."
-fi
+DRY_RUN=1
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
 
-# --- 2. Install GNU Stow ---
-echo "📦 Installation de GNU Stow..."
-brew install stow
+usage() {
+    cat <<'EOF'
+Usage : stow_setup.sh [options]
 
-# --- 3. Detect Stow packages in the repository ---
-packages=()
-for dir in "$REPO_DIR"/*/; do
-    name="$(basename "$dir")"
-    if [ -d "$dir/.config" ]; then
-        packages+=("$name")
-    fi
-done
+Vérifie GNU Stow puis propose un menu pour choisir les configurations à lier.
 
-if [ ${#packages[@]} -eq 0 ]; then
-    echo "❌ Aucun paquet Stow trouvé dans $REPO_DIR."
-    exit 1
-fi
+Options :
+  --dry-run   Affiche les actions sans rien modifier (défaut)
+  --apply     Applique réellement les changements
+  -h, --help  Affiche cette aide
+EOF
+}
 
-# --- 4. Interactive package selection (none by default) ---
-if [ ! -t 0 ]; then
-    echo "Entrée non interactive : aucun lien ne sera créé."
-    exit 0
-fi
-
-echo ""
-echo "Paquets Stow disponibles :"
-index=1
-for name in "${packages[@]}"; do
-    echo "  $index) $name"
-    index=$((index + 1))
-done
-echo "  0) Aucun (par défaut)"
-
-selected=()
-while true; do
-    printf 'Votre choix (numéros séparés par des espaces, 0 = aucun) [0] : '
-    read -r selection
-    selection="${selection:-0}"
-
-    if [ "$selection" = "0" ]; then
-        selected=()
-        break
-    fi
-
-    valid=1
-    selected=()
-    for choice in $selection; do
-        case "$choice" in
-            *[!0-9]*)
-                valid=0
-                break
+parse_args() {
+    for arg in "$@"; do
+        case "$arg" in
+            --dry-run) DRY_RUN=1 ;;
+            --apply)   DRY_RUN=0 ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                log_error "Option inconnue : $arg"
+                usage
+                exit 2
                 ;;
         esac
-        if [ "$choice" -ge 1 ] && [ "$choice" -le "${#packages[@]}" ]; then
-            selected+=("${packages[$((choice - 1))]}")
-        else
-            valid=0
-            break
+    done
+}
+
+detect_packages() {
+    local dir name
+
+    PACKAGES=()
+    for dir in "$REPO_DIR"/*/; do
+        name="$(basename "$dir")"
+        if [ -d "$dir/.config" ] || [ -d "$dir/Library" ] || [ -f "$dir/.zshrc" ]; then
+            PACKAGES+=("$name")
         fi
     done
 
-    if [ "$valid" -eq 1 ]; then
-        break
+    if [ ${#PACKAGES[@]} -eq 0 ]; then
+        log_error "Aucun paquet Stow trouvé dans $REPO_DIR."
+        exit 1
     fi
-    echo "Choix invalide. Entrez des numéros entre 1 et ${#packages[@]}, ou 0 pour aucun."
-done
+}
 
-if [ ${#selected[@]} -eq 0 ]; then
-    echo "Aucun lien créé (choix par défaut)."
-    exit 0
-fi
+check_repo() {
+    if [ -z "$REPO_DIR" ] || [ ! -d "$REPO_DIR" ]; then
+        log_error "Dépôt introuvable. Lancez ce script depuis un clone du dépôt."
+        exit 1
+    fi
+}
 
-# --- 5. Move existing files of the selected packages aside ---
-backup_if_needed() {
-    local path="$1"
-    local link target target_dir backup
+select_packages() {
+    local index=1 name choice valid selection
+    local -a selected
 
-    if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+    if [ ! -t 0 ]; then
+        log_info "Entrée non interactive : aucun lien ne sera créé."
         return 0
     fi
 
-    if [ -L "$path" ]; then
-        link="$(readlink "$path")"
-        case "$link" in
-            /*) target="$link" ;;
-            *)  target="$(dirname "$path")/$link" ;;
-        esac
-        if target_dir="$(cd "$(dirname "$target")" 2>/dev/null && pwd -P)"; then
-            target="$target_dir/$(basename "$target")"
-            case "$target" in
-                "$REPO_DIR"/*) [ -e "$target" ] && return 0 ;;
-            esac
+    echo ""
+    echo "Paquets Stow disponibles :"
+    for name in "${PACKAGES[@]}"; do
+        echo "  $index) $name"
+        index=$((index + 1))
+    done
+    echo "  0) Aucun (par défaut)"
+
+    selected=()
+    while true; do
+        printf 'Votre choix (numéros séparés par des espaces, 0 = aucun) [0] : '
+        if ! read -r selection; then
+            selection=""
         fi
+        selection="${selection:-0}"
+
+        if [ "$selection" = "0" ]; then
+            selected=()
+            break
+        fi
+
+        valid=1
+        selected=()
+        for choice in $selection; do
+            case "$choice" in
+                *[!0-9]*)
+                    valid=0
+                    break
+                    ;;
+            esac
+            if [ "$choice" -ge 1 ] && [ "$choice" -le "${#PACKAGES[@]}" ]; then
+                selected+=("${PACKAGES[$((choice - 1))]}")
+            else
+                valid=0
+                break
+            fi
+        done
+
+        if [ "$valid" -eq 1 ]; then
+            break
+        fi
+        log_warn "Choix invalide. Entrez des numéros entre 1 et ${#PACKAGES[@]}, ou 0 pour aucun."
+    done
+
+    if [ ${#selected[@]} -eq 0 ]; then
+        log_info "Aucun lien créé (choix par défaut)."
+        return 0
     fi
 
-    backup="${path}.backup.$(date +%Y%m%d%H%M%S)"
-    mv "$path" "$backup"
-    echo "   Fichier existant déplacé : $path -> $backup"
+    # Vérifier tous les prérequis avant la première sauvegarde.
+    for name in "${selected[@]}"; do
+        if [ "$name" = "lazygit" ]; then
+            require_commands lazygit delta
+        fi
+    done
+
+    deploy_packages "${selected[@]}"
+
+    if [ "$DRY_RUN" -eq 1 ]; then
+        log_warn "Mode simulation : les liens n'ont pas été créés."
+        log_info "Relancez avec --apply pour appliquer les changements."
+    else
+        log_ok "Paquets liés : ${selected[*]}"
+        log_info "Vous pouvez maintenant lancer terminal_setup.sh et yazi_setup.sh,"
+        log_info "ou gérer les liens manuellement avec stow."
+    fi
 }
 
-for name in "${selected[@]}"; do
-    while IFS= read -r -d '' file; do
-        relative="${file#"$REPO_DIR/$name/"}"
-        backup_if_needed "$HOME/$relative"
-    done < <(find "$REPO_DIR/$name/.config" -type f -print0)
-done
+main() {
+    parse_args "$@"
+    check_repo
+    require_commands stow
+    detect_packages
+    select_packages
+}
 
-# --- 6. Stow the selected packages ---
-if ! command -v stow >/dev/null 2>&1; then
-    echo "❌ GNU Stow introuvable. Installez-le avec 'brew install stow' puis relancez."
-    exit 1
-fi
-
-stow --dir="$REPO_DIR" --target="$HOME" --restow --no-folding "${selected[@]}"
-echo "   Paquets liés : ${selected[*]}"
-
-echo "----------------------------------------------------"
-echo "✅ GNU STOW EST PRÊT !"
-echo "----------------------------------------------------"
-echo "Configurations liées : ${selected[*]}"
-echo "Vous pouvez maintenant lancer 'scripts/terminal_setup.sh' et 'scripts/yazi_setup.sh',"
-echo "ou gérer les liens manuellement avec 'stow'."
+main "$@"

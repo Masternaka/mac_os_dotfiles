@@ -18,11 +18,13 @@ Les raccourcis clavier restent ceux de Yazi : `h`/`l` pour naviguer, `s` pour ch
 
 ## Installation
 
-Le script dédié installe Yazi, ses outils de prévisualisation et crée le lien Stow :
+Le script dédié vérifie Yazi et ses outils déjà présents, puis prépare le lien Stow :
 
 ```bash
-./scripts/yazi_setup.sh
+bash scripts/yazi_setup.sh --dry-run
 ```
+
+Après relecture, remplacer `--dry-run` par `--apply` pour créer le lien.
 
 Ou manuellement, depuis la racine du dépôt :
 

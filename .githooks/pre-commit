@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Objectif : vérifier les scripts et les espaces avant un commit de ce dépôt.
+# Prérequis : Git, Bash, Zsh et ShellCheck déjà présents ; bibliothèque locale.
+# Options : --dry-run (défaut), --apply (mêmes contrôles en lecture seule), --help.
+# Effets : lecture seule, aucune indexation ni correction automatique.
+# Retour arrière : désactiver core.hooksPath selon docs/verification.md.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+DRY_RUN=1
+# shellcheck source=../scripts/lib.sh
+source "$REPO_DIR/scripts/lib.sh"
+
+usage() {
+    printf '%s\n' \
+        'Usage : bash .githooks/pre-commit [--dry-run|--apply|--help]' \
+        'Effectue uniquement des contrôles en lecture seule, dans tous les modes.'
+}
+
+main() {
+    local arg script
+    for arg in "$@"; do
+        case "$arg" in
+            --dry-run|--apply) ;;
+            -h|--help) usage; return 0 ;;
+            *) log_error "Option inconnue : $arg"; return 2 ;;
+        esac
+    done
+
+    require_commands git bash zsh shellcheck
+    cd "$REPO_DIR"
+    # Refuser les scripts partiellement indexés : le contrôle porte sur les
+    # fichiers du dossier de travail, qui doivent correspondre à l'index.
+    if ! git diff --quiet -- scripts/*.sh .githooks/pre-commit .shellcheckrc zsh/.zshrc; then
+        log_error "Des fichiers analysés diffèrent de l'index. Indexez leur version complète avant le commit."
+        return 1
+    fi
+    # Ne pas valider des dépendances encore absentes de l'index.
+    git ls-files --error-unmatch -- scripts/*.sh .githooks/pre-commit .shellcheckrc zsh/.zshrc >/dev/null
+    git diff --cached --check
+    for script in scripts/*.sh .githooks/pre-commit; do
+        bash -n "$script"
+    done
+    zsh -n zsh/.zshrc
+    shellcheck scripts/*.sh .githooks/pre-commit
+    log_ok "Syntaxe, ShellCheck et espaces vérifiés ; aucun fichier modifié."
+}
+
+main "$@"

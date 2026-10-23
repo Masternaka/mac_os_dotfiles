@@ -1,79 +1,91 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Objectif : vérifier les outils de Yazi et lier sa configuration.
+# Prérequis : outils décrits dans scripts/README.md, déjà présents.
+# Options : --dry-run (défaut), --apply, --help.
+# Effets : sauvegarde de la configuration existante et création des liens Stow.
+# Retour arrière : voir docs/retour-arriere.md.
 
-echo "🚀 Installation de Yazi et de sa configuration..."
+set -euo pipefail
 
-# --- 0. Resolve repository location (GNU Stow package) ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd -P || true)"
 REPO_DIR=""
 if [ -n "$SCRIPT_DIR" ]; then
     REPO_DIR="$(dirname "$SCRIPT_DIR")"
 fi
 
-if [ -z "$REPO_DIR" ] || [ ! -d "$REPO_DIR/yazi/.config/yazi" ]; then
-    echo "❌ Paquet Stow 'yazi' introuvable. Lancez ce script depuis un clone du dépôt."
+if [ -z "$SCRIPT_DIR" ] || [ ! -f "$SCRIPT_DIR/lib.sh" ]; then
+    echo "Erreur : lib.sh introuvable." >&2
     exit 1
 fi
 
-# --- 1. Install Homebrew if not present ---
-if ! command -v brew &> /dev/null; then
-    echo "🍺 Homebrew absent. Installation de Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-else
-    echo "✅ Homebrew déjà installé."
-fi
+DRY_RUN=1
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
 
-# --- 2. Install Yazi and recommended preview tools ---
-echo "📦 Installation de Yazi et des outils de prévisualisation..."
-echo "   (ffmpeg, sevenzip, jq, poppler, fd, ripgrep, fzf, zoxide, resvg, imagemagick)"
-brew install yazi ffmpeg sevenzip jq poppler fd ripgrep fzf zoxide resvg imagemagick stow
+usage() {
+    cat <<'EOF'
+Usage : yazi_setup.sh [options]
 
-# --- 3. Link configuration with GNU Stow ---
-echo "🔗 Liaison de ~/.config/yazi avec GNU Stow..."
+Vérifie Yazi, ses outils de prévisualisation et relie sa configuration avec GNU Stow.
 
-# Move an existing file aside so Stow can create its symlink
-backup_if_needed() {
-    local path="$1"
-    local link target target_dir backup
+Options :
+  --dry-run   Affiche les actions sans rien modifier (défaut)
+  --apply     Applique réellement les changements
+  -h, --help  Affiche cette aide
+EOF
+}
 
-    if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+parse_args() {
+    for arg in "$@"; do
+        case "$arg" in
+            --dry-run) DRY_RUN=1 ;;
+            --apply)   DRY_RUN=0 ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                log_error "Option inconnue : $arg"
+                usage
+                exit 2
+                ;;
+        esac
+    done
+}
+
+check_repo() {
+    if [ -z "$REPO_DIR" ] || [ ! -d "$REPO_DIR/yazi/.config/yazi" ]; then
+        log_error "Paquet Stow 'yazi' introuvable. Lancez ce script depuis un clone du dépôt."
+        exit 1
+    fi
+}
+
+check_dependencies() {
+    require_commands stow yazi ffmpeg 7zz jq pdftoppm fd rg fzf zoxide resvg magick
+}
+
+link_config() {
+    deploy_packages yazi
+}
+
+summary() {
+    if [ "$DRY_RUN" -eq 1 ]; then
+        log_warn "Mode simulation : aucune modification n'a été effectuée."
+        log_info "Relancez avec --apply pour appliquer les changements."
         return 0
     fi
 
-    if [ -L "$path" ]; then
-        link="$(readlink "$path")"
-        case "$link" in
-            /*) target="$link" ;;
-            *)  target="$(dirname "$path")/$link" ;;
-        esac
-        if target_dir="$(cd "$(dirname "$target")" 2>/dev/null && pwd -P)"; then
-            target="$target_dir/$(basename "$target")"
-            case "$target" in
-                "$REPO_DIR"/*) [ -e "$target" ] && return 0 ;;
-            esac
-        fi
-    fi
-
-    backup="${path}.backup.$(date +%Y%m%d%H%M%S)"
-    mv "$path" "$backup"
-    echo "   Fichier existant déplacé : $path -> $backup"
+    log_ok "Configuration Yazi liée."
+    log_info "Lancez Yazi avec 'yazi'."
+    log_info "Touches utiles : '.' pour les fichiers cachés, 'z' pour fzf, 'Z' pour zoxide."
 }
 
-for file in yazi.toml keymap.toml theme.toml; do
-    backup_if_needed "$HOME/.config/yazi/$file"
-done
+main() {
+    parse_args "$@"
+    check_repo
+    check_dependencies
+    link_config
+    summary
+}
 
-if ! command -v stow >/dev/null 2>&1; then
-    echo "❌ GNU Stow introuvable. Installez-le avec 'brew install stow' puis relancez."
-    exit 1
-fi
-
-stow --dir="$REPO_DIR" --target="$HOME" --restow --no-folding yazi
-echo "   Paquet 'yazi' lié depuis $REPO_DIR"
-
-echo "----------------------------------------------------"
-echo "✅ INSTALLATION TERMINÉE !"
-echo "----------------------------------------------------"
-echo "1. Lancez Yazi avec la commande 'yazi'."
-echo "2. Pour modifier la configuration, éditez '$REPO_DIR/yazi/.config/yazi/yazi.toml'."
-echo "3. Touches utiles : '.' pour les fichiers cachés, 'z' pour fzf, 'Z' pour zoxide."
+main "$@"

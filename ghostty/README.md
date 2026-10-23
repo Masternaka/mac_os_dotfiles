@@ -30,4 +30,4 @@ Le fichier est alors lié à `~/.config/ghostty/config`. Pour retirer le lien :
 stow --target="$HOME" --delete ghostty
 ```
 
-Le script `scripts/terminal_setup.sh` installe Ghostty et crée ce lien automatiquement.
+Après une simulation avec `bash scripts/terminal_setup.sh --dry-run`, l’option `--apply` crée ce lien si les prérequis sont présents ; Ghostty doit déjà être installé.

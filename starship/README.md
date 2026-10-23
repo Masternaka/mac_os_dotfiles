@@ -26,7 +26,7 @@ Pour retirer le lien :
 stow --target="$HOME" --delete starship
 ```
 
-Le script `scripts/terminal_setup.sh` installe Starship et crée ce lien automatiquement.
+Après une simulation avec `bash scripts/terminal_setup.sh --dry-run`, l’option `--apply` crée ce lien si les prérequis sont présents ; Starship doit déjà être installé.
 
 ## Personnalisation
 

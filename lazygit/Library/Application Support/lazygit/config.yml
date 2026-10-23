@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jesseduffield/lazygit/v0.66.2/schema/config.json
+# Cible : macOS, Lazygit 0.66.2 ; Delta déjà installé dans le PATH.
+# Destination : ~/Library/Application Support/lazygit/config.yml (GNU Stow).
+# Les options non précisées gardent les valeurs natives de Lazygit.
+
+gui:
+  # Garder les raccourcis natifs, l'aide et le journal des commandes visibles.
+  sidePanelWidth: 0.25
+  nerdFontsVersion: "3"
+  showNumstatInFilesView: true
+  showRandomTip: false
+  shortTimeFormat: "15:04"
+  # Catppuccin Macchiato en sombre, Latte en clair.
+  colorScheme: auto
+  darkTheme:
+    activeBorderColor: ["#c6a0f6", bold]
+    inactiveBorderColor: ["#6e738d"]
+    searchingActiveBorderColor: ["#eed49f", bold]
+    optionsTextColor: ["#8aadf4"]
+    selectedLineBgColor: ["#363a4f"]
+    defaultFgColor: ["#cad3f5"]
+    unstagedChangesColor: ["#ed8796"]
+  lightTheme:
+    activeBorderColor: ["#8839ef", bold]
+    inactiveBorderColor: ["#9ca0b0"]
+    searchingActiveBorderColor: ["#df8e1d", bold]
+    optionsTextColor: ["#1e66f5"]
+    selectedLineBgColor: ["#ccd0da"]
+    defaultFgColor: ["#4c4f69"]
+    unstagedChangesColor: ["#d20f39"]
+
+git:
+  # Actions distantes et déplacement des branches déclenchés manuellement.
+  autoFetch: false
+  autoForwardBranches: none
+  autoStageResolvedConflicts: false
+  # Ne pas ignorer les hooks pour les messages commençant par WIP.
+  skipHookPrefix: ""
+  # Delta reste local à Lazygit : aucune modification du .gitconfig.
+  # Le deuxième rendu permet de revenir à Git avec la touche |.
+  diffRenderers:
+    - name: Delta
+      command: >-
+        delta --{{colorScheme}} --paging=never --line-numbers --tab-width=4
+    - name: Git
+      type: rawGit
+
+# L'éditeur est choisi via VISUAL/EDITOR, comme dans l'environnement existant.
+# Aucun dépôt créé implicitement, aucune mise à jour de Lazygit en arrière-plan.
+notARepository: quit
+update:
+  method: never
+
+# Extensions natives, accessibles depuis ? sans remplacer les raccourcis.
+customCommands:
+  - context: files
+    description: "Contrôler les espaces des changements indexés"
+    command: git diff --cached --check
+    output: terminal
+  - context: files
+    description: "Analyser le script Bash sélectionné avec ShellCheck"
+    command: "shellcheck -- {{.SelectedFile.Name | quote}}"
+    output: terminal
+  # GitHub CLI est facultatif ; ces actions consultent le dépôt courant.
+  - context: files
+    description: "GitHub : consulter les pull requests"
+    command: >-
+      if command -v gh >/dev/null 2>&1; then
+        GH_PAGER=cat gh pr status;
+      else
+        printf '%s\n' 'gh absent : voir lazygit/README.md pour la préparation manuelle.' >&2;
+        exit 127;
+      fi
+    output: terminal
+  - context: files
+    description: "GitHub : consulter la pull request de la branche courante"
+    command: >-
+      if command -v gh >/dev/null 2>&1; then
+        GH_PAGER=cat gh pr view;
+      else
+        printf '%s\n' 'gh absent : voir lazygit/README.md pour la préparation manuelle.' >&2;
+        exit 127;
+      fi
+    output: terminal
+  - context: files
+    description: "GitHub : consulter les vérifications de la pull request courante"
+    command: >-
+      if command -v gh >/dev/null 2>&1; then
+        GH_PAGER=cat gh pr checks;
+      else
+        printf '%s\n' 'gh absent : voir lazygit/README.md pour la préparation manuelle.' >&2;
+        exit 127;
+      fi
+    output: terminal
