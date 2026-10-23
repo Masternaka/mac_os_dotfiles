@@ -1,0 +1,30 @@
+# Herdr — configuration simple et pratique
+# Destination : ~/.config/herdr/config.toml (via GNU Stow)
+# Référence : https://herdr.dev/docs/config-reference/
+
+# Ignore l'assistant de premier lancement
+onboarding = false
+
+# Suit automatiquement l'apparence clair/sombre du terminal
+[theme]
+name = "catppuccin"
+auto_switch = true
+dark_name = "catppuccin"
+light_name = "catppuccin-latte"
+
+# Nouveaux panneaux : shell de connexion et répertoire hérité
+[terminal]
+shell_mode = "auto"
+new_cwd = "follow"
+
+# Interface sobre et lisible
+[ui]
+pane_borders = "auto"
+status_indicators = "symbols"
+
+# Notifications intégrées, en bas à droite
+[ui.toast]
+delivery = "herdr"
+
+[ui.toast.herdr]
+position = "bottom-right"

@@ -1,53 +1,33 @@
 # Ghostty (config + thèmes)
 
-Ce dossier contient une configuration et des thèmes pour **Ghostty**, un terminal macOS moderne et personnalisable.
+Ce dossier contient la configuration **Ghostty** du dépôt, organisée comme un paquet [GNU Stow](https://www.gnu.org/software/stow/).
 
-## 🧩 Ce que contient ce dossier
+## 🧩 Contenu
 
-- `config` : fichier de configuration principal de Ghostty (correspond à `~/.config/ghostty/config`).
-- `themes/` : thèmes Catppuccin (Mocha, Macchiato, Frappé, Latte) compatibles avec Ghostty.
-
-> 📝 Remarque : il n'y a pas de script dans ce dossier, il s'agit d'un ensemble de fichiers de configuration.
+- `.config/ghostty/config` : configuration principale, liée vers `~/.config/ghostty/config`.
+- Le thème Catppuccin (Mocha en sombre, Latte en clair) est fourni par Ghostty : aucun fichier de thème séparé n'est nécessaire.
 
 ## ⚙️ Ce que fait la configuration
 
 Le fichier `config` contient des réglages pour :
 
-- l'apparence (thème, police, transparence, bordures, etc.)
-- le comportement de la fenêtre (taille, position, barre de titres, boutons macOS)
-- le comportement du curseur, du scrollback, des onglets/splits
-- des raccourcis clavier personnalisés (ex. : `cmd+enter` pour fullscreen)
+- l'apparence (thème, police, transparence, marges)
+- le comportement de la fenêtre (taille, barre de titres, boutons macOS)
+- le curseur, le scrollback, les onglets et les splits
+- des raccourcis clavier personnalisés (ex. : `cmd+enter` pour le plein écran)
 
-## 🚀 Utilisation
+## 🚀 Installation avec Stow
 
-1. Installez Ghostty (par exemple via Homebrew) :
+Depuis la racine du dépôt :
 
-   ```bash
-   brew install --cask ghostty
-   ```
+```bash
+stow --target="$HOME" --restow --no-folding ghostty
+```
 
-2. Copiez ce fichier de configuration dans votre dossier utilisateur :
+Le fichier est alors lié à `~/.config/ghostty/config`. Pour retirer le lien :
 
-   ```bash
-   mkdir -p ~/.config/ghostty
-   cp "$(pwd)/config" ~/.config/ghostty/config
-   ```
+```bash
+stow --target="$HOME" --delete ghostty
+```
 
-3. Lancez Ghostty. Il prendra automatiquement en compte ce fichier de config.
-
-4. Pour changer de thème, copiez l'un des fichiers du dossier `themes/` vers :
-
-   ```bash
-   cp "$(pwd)/themes/catppuccin-mocha.conf" ~/.config/ghostty/theme.conf
-   ```
-
-   puis relancez Ghostty (ou utilisez le menu de l'app si disponible).
-
-## 🔧 Personnalisation
-
-- Modifiez `config` pour ajuster la taille de police, les raccourcis, la transparence, etc.
-- Modifiez ou ajoutez d'autres fichiers de thème dans `themes/`.
-
----
-
-✅ Vous pouvez maintenant utiliser ce dossier comme base pour votre configuration Ghostty sur macOS.
+Le script `scripts/terminal_setup.sh` installe Ghostty et crée ce lien automatiquement.

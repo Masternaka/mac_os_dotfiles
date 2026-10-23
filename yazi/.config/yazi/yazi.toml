@@ -1,0 +1,25 @@
+#:schema https://yazi-rs.github.io/schemas/yazi.json
+
+# Configuration Yazi — simple et pratique
+# Destination : ~/.config/yazi/yazi.toml (via GNU Stow)
+
+[mgr]
+# Plus d'espace pour le panneau d'aperçu
+ratio = [1, 3, 4]
+
+# Tri naturel (fichier2 avant fichier10), dossiers en premier
+sort_by = "natural"
+sort_dir_first = true
+
+# Afficher la taille des fichiers
+linemode = "size"
+
+# Fichiers cachés masqués par défaut ; la touche "." les affiche
+show_hidden = false
+show_symlink = true
+
+[preview]
+# Aperçu plus grand sur les écrans haute résolution
+max_width = 1000
+max_height = 1000
+wrap = "no"
